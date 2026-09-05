@@ -26,6 +26,7 @@ A formal demo is a signed-in document surface.
 | Login / register / JWT | `AuthenticationRestController`, `UserService`, `JwtUtil` |
 | Password reset | `PasswordResetService`, `AwsSesMailService` |
 | Authn boundary | `SecurityConfig`, `JwtRequestFilter` |
+| User documents / ingest | `DocumentRestController`, `DocumentService` |
 | Schema | `liquibase/changelog.xml` |
 
 ## Commits

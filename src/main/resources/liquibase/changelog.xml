@@ -52,4 +52,36 @@
                 onDelete="CASCADE"/>
     </changeSet>
 
+    <changeSet id="user-documents" author="hstafford">
+        <comment>Per-user set and deck documents. No card catalog.</comment>
+        <createTable tableName="user_documents">
+            <column name="user_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="id" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="body" type="JSONB">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="user_documents" columnNames="user_id, type, id" constraintName="user_documents_pk"/>
+        <addForeignKeyConstraint
+                baseTableName="user_documents"
+                baseColumnNames="user_id"
+                referencedTableName="users"
+                referencedColumnNames="id"
+                constraintName="user_documents_users_fk"
+                onDelete="CASCADE"/>
+    </changeSet>
+
 </databaseChangeLog>

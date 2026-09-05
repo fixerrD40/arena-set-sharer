@@ -48,13 +48,10 @@ class JwtRequestFilter(
     }
 
     companion object {
-        fun getAuthenticatedUserIdOrNull(): String? {
-            val auth = SecurityContextHolder.getContext().authentication
-
-            return when (val principal = auth?.principal) {
-                is User -> principal.username
-                else -> null
-            }
+        fun authenticatedUser(): User {
+            val principal = SecurityContextHolder.getContext().authentication?.principal
+            return principal as? User
+                ?: throw IllegalStateException("Unauthenticated")
         }
     }
 }
