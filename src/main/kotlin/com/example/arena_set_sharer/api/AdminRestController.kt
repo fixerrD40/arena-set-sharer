@@ -1,0 +1,31 @@
+package com.example.arena_set_sharer.api
+
+import com.example.arena_set_sharer.api.model.AdminGrant
+import com.example.arena_set_sharer.service.UserService
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+
+@RestController
+@Tag(name = "Admin Rest Controller", description = "Root-only admin grants.")
+@RequestMapping("/api/admins")
+class AdminRestController(
+    private val users: UserService
+) {
+
+    @Operation(summary = "Grant or revoke users.admin. Root only.")
+    @PutMapping
+    fun setAdmin(@RequestBody grant: AdminGrant): ResponseEntity<Void> {
+        return try {
+            users.setAdmin(grant.email, grant.admin)
+                ?: return ResponseEntity.notFound().build()
+            ResponseEntity.noContent().build()
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.badRequest().build()
+        }
+    }
+}

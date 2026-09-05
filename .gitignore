@@ -19,6 +19,7 @@ bin/
 
 .env
 .cursor/FOLLOWUPS.md
+covers/
 
 ### IntelliJ IDEA ###
 .idea

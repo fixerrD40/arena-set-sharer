@@ -84,4 +84,13 @@
                 onDelete="CASCADE"/>
     </changeSet>
 
+    <changeSet id="users-admin" author="hstafford">
+        <comment>Operator flag for cover upload.</comment>
+        <addColumn tableName="users">
+            <column name="admin" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
 </databaseChangeLog>

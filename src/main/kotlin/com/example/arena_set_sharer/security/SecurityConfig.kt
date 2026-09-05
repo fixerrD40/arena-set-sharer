@@ -45,6 +45,10 @@ class SecurityConfig {
                 it
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .requestMatchers("/auth/**", "/error").permitAll()
+                    // GET covers: Electron / Capacitor / <img> fetch the jpg without a Bearer.
+                    .requestMatchers(HttpMethod.GET, "/api/assets/covers/**").permitAll()
+                    .requestMatchers(HttpMethod.PUT, "/api/assets/covers/**").hasRole("ADMIN")
+                    .requestMatchers("/api/admins/**").hasRole("ROOT")
                     .requestMatchers("/api/**").authenticated()
             }
             .sessionManagement {

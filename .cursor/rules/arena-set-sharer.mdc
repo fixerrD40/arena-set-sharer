@@ -27,6 +27,8 @@ A formal demo is a signed-in document surface.
 | Password reset | `PasswordResetService`, `AwsSesMailService` |
 | Authn boundary | `SecurityConfig`, `JwtRequestFilter` |
 | User documents / ingest | `DocumentRestController`, `DocumentService` |
+| Set covers | `CoverRestController`, `CoverService` |
+| Root / admin grant | `AdminRestController`, `UserService` |
 | Schema | `liquibase/changelog.xml` |
 
 ## Commits

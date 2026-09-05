@@ -4,6 +4,7 @@ import com.example.arena_set_sharer.api.model.User
 import com.example.arena_set_sharer.persistence.UserRepository
 import com.example.arena_set_sharer.persistence.model.UserEntity
 import com.example.arena_set_sharer.security.CryptoUtil
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -12,17 +13,21 @@ import java.time.Instant
 class UserService(
     private val dao: UserRepository,
     private val passwordEncoder: PasswordEncoder,
-    private val cryptoUtil: CryptoUtil
+    private val cryptoUtil: CryptoUtil,
+    @Value("\${app.root-email:}") private val rootEmail: String
 ) {
 
     fun getUser(id: Int): User {
-        return dao.findById(id).get().toDomain()
+        return toDomain(dao.findById(id).get())
     }
 
     fun getUser(email: String): User? {
         val encodedEmail = cryptoUtil.hmacSha256(email)
+        return dao.findByEmailHash(encodedEmail)?.let { toDomain(it) }
+    }
 
-        return dao.findByEmailHash(encodedEmail)?.toDomain()
+    fun getUserByUsername(username: String): User? {
+        return dao.findByUsername(username)?.let { toDomain(it) }
     }
 
     fun authenticate(email: String, password: String): User? {
@@ -44,10 +49,11 @@ class UserService(
             emailHash = encodedEmail,
             username = username,
             passwordHash = encodedPassword,
-            createdAt = Instant.now()
+            createdAt = Instant.now(),
+            admin = false
         )
 
-        return dao.save(newUser).toDomain()
+        return toDomain(dao.save(newUser))
     }
 
     fun resetUserPassword(userId: Int, newPassword: String): User? {
@@ -58,7 +64,21 @@ class UserService(
         val encodedPassword = passwordEncoder.encode(newPassword)
 
         val updatedUser = userEntity.copy(passwordHash = encodedPassword)
-        return dao.save(updatedUser).toDomain()
+        return toDomain(dao.save(updatedUser))
+    }
+
+    fun setAdmin(email: String, admin: Boolean): User? {
+        require(EMAIL_REGEX.matches(email)) { "Invalid email format." }
+        val entity = dao.findByEmailHash(cryptoUtil.hmacSha256(email)) ?: return null
+        return toDomain(dao.save(entity.copy(admin = admin)))
+    }
+
+    // root is config (APP_ROOT_EMAIL HMAC), not a grant. admin is a column root can flip.
+    private fun toDomain(entity: UserEntity): User = entity.toDomain(isRootHash(entity.emailHash))
+
+    private fun isRootHash(emailHash: String): Boolean {
+        if (rootEmail.isBlank()) return false
+        return emailHash == cryptoUtil.hmacSha256(rootEmail)
     }
 
     companion object {
