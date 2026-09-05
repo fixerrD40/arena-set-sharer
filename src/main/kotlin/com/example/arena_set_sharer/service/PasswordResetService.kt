@@ -45,7 +45,7 @@ class PasswordResetService(
         passwordReset.used = true
         dao.save(passwordReset)
 
-        users.resetUserPassword(passwordReset.id!!, newPassword)
+        users.resetUserPassword(passwordReset.appUser, newPassword)
     }
 
     private fun canRequestReset(user: User): Boolean {
