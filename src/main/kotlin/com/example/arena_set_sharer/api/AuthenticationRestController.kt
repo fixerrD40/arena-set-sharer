@@ -1,6 +1,7 @@
 package com.example.arena_set_sharer.api
 
 import com.example.arena_set_sharer.api.model.PasswordReset
+import com.example.arena_set_sharer.api.model.Session
 import com.example.arena_set_sharer.api.model.User
 import com.example.arena_set_sharer.security.JwtUtil
 import com.example.arena_set_sharer.service.PasswordResetService
@@ -15,9 +16,6 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.authentication.BadCredentialsException
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -28,7 +26,6 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBod
 @Tag(name = "Authentication Rest Controller", description = "Manage user authentication.")
 @RequestMapping("auth")
 class AuthenticationRestController(
-    private val authenticationManager: AuthenticationManager,
     private val passwordResetService: PasswordResetService,
     private val userService: UserService,
     private val jwtUtil: JwtUtil
@@ -40,38 +37,32 @@ class AuthenticationRestController(
         description = "Authenticate an existing user.",
         responses = [
             ApiResponse(responseCode = "200", description = "Authentication successful.",
-                content = [Content(schema = Schema(implementation = String::class, description = "Jwt as a string."))]
+                content = [Content(schema = Schema(implementation = Session::class))]
             ),
             ApiResponse(responseCode = "400", description = "Authentication malformed."),
-            ApiResponse(responseCode = "401", description = "Invalid username or password."),
+            ApiResponse(responseCode = "401", description = "Invalid email or password."),
             ApiResponse(responseCode = "500", description = "Unexpected server error.")
         ],
         requestBody = SwaggerRequestBody(
             required = true,
-            description = "Username and password.",
+            description = "Email and password.",
             content = [
                 Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = Schema(implementation = User::class, requiredProperties = ["username", "password"]),
+                    schema = Schema(implementation = User::class, requiredProperties = ["email", "password"]),
                     examples = [ExampleObject(MY_USER)]
                 )
             ]
         )
     )
     @PostMapping("login")
-    fun loginUser(@RequestBody credentials: User): ResponseEntity<String> {
-        try {
-            val authToken = UsernamePasswordAuthenticationToken(credentials.username, credentials.password)
-            val authentication = authenticationManager.authenticate(authToken)
+    fun loginUser(@RequestBody credentials: User): ResponseEntity<Session> {
+        val email = credentials.email?.takeIf { it.isNotBlank() }
+            ?: return ResponseEntity.badRequest().build()
+        val user = userService.authenticate(email, credentials.password)
+            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
 
-            val user = authentication.principal as User
-
-            val jwt = jwtUtil.generateToken(user)
-
-            return ResponseEntity.ok(jwt)
-        } catch (e: BadCredentialsException) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
-        }
+        return ResponseEntity.ok(Session(jwtUtil.generateToken(user), user.username))
     }
 
     @Operation(
@@ -80,7 +71,7 @@ class AuthenticationRestController(
         description = "Register and authenticate new user.",
         responses = [
             ApiResponse(responseCode = "201", description = "User registered successfully.",
-                content = [Content(schema = Schema(implementation = String::class, description = "Jwt as a string."))]
+                content = [Content(schema = Schema(implementation = Session::class))]
             ),
             ApiResponse(responseCode = "400", description = "Registration malformed."),
             ApiResponse(responseCode = "409", description = "You already have an account."),
@@ -88,24 +79,21 @@ class AuthenticationRestController(
         ],
         requestBody = SwaggerRequestBody(
             required = true,
-            description = "Email, username, and password.",
+            description = "Email and password. Username is optional.",
             content = [
                 Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = Schema(implementation = User::class, requiredProperties = ["email", "username", "password"]),
+                    schema = Schema(implementation = User::class, requiredProperties = ["email", "password"]),
                     examples = [ExampleObject(MY_USER)]
                 )
             ]
         )
     )
     @PostMapping("register")
-    fun registerUser(@RequestBody credentials: User): ResponseEntity<String> {
+    fun registerUser(@RequestBody credentials: User): ResponseEntity<Session> {
         return try {
             val user = userService.registerUser(credentials)
-
-            val jwt = jwtUtil.generateToken(user)
-
-            ResponseEntity.status(HttpStatus.CREATED).body(jwt)
+            ResponseEntity.status(HttpStatus.CREATED).body(Session(jwtUtil.generateToken(user), user.username))
         } catch (e: DataIntegrityViolationException) {
             ResponseEntity.status(HttpStatus.CONFLICT).build()
         } catch (e: IllegalArgumentException) {

@@ -25,15 +25,24 @@ class UserService(
         return dao.findByEmailHash(encodedEmail)?.toDomain()
     }
 
+    fun authenticate(email: String, password: String): User? {
+        val user = getUser(email) ?: return null
+        if (!passwordEncoder.matches(password, user.getPassword())) return null
+        return user
+    }
+
     fun registerUser(credentials: User): User {
         require(credentials.email != null)
         require(EMAIL_REGEX.matches(credentials.email)) { "Invalid email format." }
         val encodedEmail = cryptoUtil.hmacSha256(credentials.email)
         val encodedPassword = passwordEncoder.encode(credentials.password)
+        val username = credentials.username.takeIf { it.isNotBlank() }
+            ?: credentials.email.substringBefore('@').take(50)
+        require(username.isNotBlank()) { "Username is required." }
 
         val newUser = UserEntity(
             emailHash = encodedEmail,
-            username = credentials.username,
+            username = username,
             passwordHash = encodedPassword,
             createdAt = Instant.now()
         )

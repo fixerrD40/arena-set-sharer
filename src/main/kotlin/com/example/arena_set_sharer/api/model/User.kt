@@ -5,10 +5,9 @@ import org.springframework.security.core.userdetails.UserDetails
 
 class User(
     val id: Int? = null,
-    val email: String?,
-    private val username: String,
-    private val password: String
-
+    val email: String? = null,
+    private val username: String = "",
+    private val password: String = ""
 ) : UserDetails {
     override fun getAuthorities(): Set<GrantedAuthority> = emptySet()
 
