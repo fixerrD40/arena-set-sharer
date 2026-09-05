@@ -1,0 +1,65 @@
+---
+description: arena_set_sharer vision, architecture map, and git conventions
+alwaysApply: true
+---
+
+# arena_set_sharer
+
+## Product
+
+Cloud auth and document share for **arena_set_cracker**. The client owns discovery, Scryfall, Arena parse, and the local vault. This server holds accounts, user documents, and (when there is multi-user data) community-aggregated insight such as pairing rates.
+
+A formal demo is a signed-in document surface.
+
+## Stack map
+
+- Kotlin / Spring Boot 3.5, package `com.example.arena_set_sharer`
+- Postgres via Docker Compose; Liquibase at `src/main/resources/liquibase/changelog.xml`
+- JPA for `users` and `password_resets`; user documents are JSONB when that table exists
+- JWT + BCrypt + HMAC email; SES for reset mail
+- `bootRun` loads gitignored `.env` (see `.env.example`). Tests use `src/test/resources/application.properties`
+
+## Where the brain lives
+
+| Concern | Owner |
+|---------|--------|
+| Login / register / JWT | `AuthenticationRestController`, `UserService`, `JwtUtil` |
+| Password reset | `PasswordResetService`, `AwsSesMailService` |
+| Authn boundary | `SecurityConfig`, `JwtRequestFilter` |
+| Schema | `liquibase/changelog.xml` |
+
+## Commits
+
+Ask where the user is before committing. First line: `<place> <goal>` (Hideaway is a place-stamp, not a magic title and not assumed).
+
+Body only when the goal needs grains above the diff. Prefer verb-led, natural bullets. Signpost with **one fixed name** per surface (class, table, owner)—do not invent aliases for the same thing. Prefer a short domain phrase over listing every new symbol when that domain owns them. When the same commit includes a preliminary that enables the goal, list that bullet first. Track files (or their owners) nested under the domain change. Header-only when the diff is one file and obvious. Do not restate the header, the product story, or work that is not in the diff.
+
+Fold same-story follow-ups into the unpushed commit. Leave unrelated fixes as their own commit. Do not rewrite anything already on the remote.
+
+Only commit when the user asks.
+
+## Comments
+
+Comments record durable why that the code does not show. Put session teaching and “not X” rebuttals in the chat. Do not narrate a choice the identifiers already name.
+
+```kotlin
+// BAD — play-by-play the next reader gets from the bindings
+// Hash the email, then store the hash.
+
+// GOOD — why HMAC and not a column of plaintext
+// email_hash: HMAC so a dumped users table is not a mailing list.
+```
+
+## Tests
+
+`./gradlew test` starts Compose Postgres and runs the context-load smoke. Prefer that over inventing a suite mid-feature.
+
+## Refactors
+
+Propose preliminary or structural cleanups that would enable the task; wait for assent before expanding into them.
+
+## Session scope
+
+Treat document ingest, formal demo, and community pairing as **in or out of scope only when the user says so** for that session.
+
+Read `.cursor/FOLLOWUPS.md` for intentional deferrals. That file is local and not in git.

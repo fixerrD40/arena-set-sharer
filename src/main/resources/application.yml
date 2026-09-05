@@ -1,6 +1,6 @@
 spring:
   application:
-    name: arena-set-cracker
+    name: arena_set_sharer
   config:
     import:
     - classpath:config/config.yml

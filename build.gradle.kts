@@ -12,21 +12,12 @@ val group = "com.example"
 val version = "0.0.1-SNAPSHOT"
 
 val awsSdkVersion = "2.33.4"
-val springCloudVersion = "2025.0.0"
 
 repositories {
     mavenCentral()
 }
 
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion")
-    }
-}
-
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -35,9 +26,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-mail")
 
-    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
-
-    implementation("com.github.ben-manes.caffeine:caffeine:3.2.2")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.2")
     implementation("io.swagger.core.v3:swagger-annotations-jakarta:2.2.28")
     implementation("org.liquibase:liquibase-core:4.31.0")
@@ -73,11 +61,18 @@ dockerCompose {
 
 dockerCompose.isRequiredBy(tasks.test)
 
-tasks.register<Copy>("copyPythonScripts") {
-    from("$rootDir/python")
-    into("$buildDir/docker/python")
+fun envFileBindings(): Map<String, String> {
+    val envFile = rootDir.resolve(".env")
+    if (!envFile.isFile) return emptyMap()
+    return envFile.readLines()
+        .map { it.trim() }
+        .filter { it.isNotEmpty() && !it.startsWith("#") && it.contains("=") }
+        .associate { line ->
+            val (key, value) = line.split("=", limit = 2)
+            key.trim() to value.trim().trim('"', '\'')
+        }
 }
 
-tasks.named("dockerBuildImage") {
-    dependsOn("copyPythonScripts")
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    environment(envFileBindings())
 }

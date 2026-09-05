@@ -17,6 +17,9 @@ bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 
+.env
+.cursor/FOLLOWUPS.md
+
 ### IntelliJ IDEA ###
 .idea
 *.iws
@@ -38,6 +41,3 @@ out/
 
 ### Kotlin ###
 .kotlin
-
-### Python ###
-/python/sample_input.json

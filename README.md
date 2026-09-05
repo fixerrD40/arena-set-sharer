@@ -1,2 +1,2 @@
-# arena-set-cracker
-Desktop (actually web) app to help you organize your cards into decks in Magic: The Gathering Arena.
+# arena_set_sharer
+Cloud auth and document share for the Arena Set Cracker client.
