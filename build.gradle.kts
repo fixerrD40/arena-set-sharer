@@ -11,8 +11,6 @@ plugins {
 val group = "com.example"
 val version = "0.0.1-SNAPSHOT"
 
-val awsSdkVersion = "2.33.4"
-
 repositories {
     mavenCentral()
 }
@@ -30,10 +28,6 @@ dependencies {
     implementation("io.swagger.core.v3:swagger-annotations-jakarta:2.2.28")
     implementation("org.liquibase:liquibase-core:4.31.0")
     implementation("org.postgresql:postgresql:42.7.5")
-
-    // aws_>solving problems
-    implementation("software.amazon.awssdk:ses:$awsSdkVersion")
-    implementation("software.amazon.awssdk:regions")
 
     // jjwt
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")

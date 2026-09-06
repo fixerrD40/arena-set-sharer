@@ -16,7 +16,7 @@ A formal demo is a signed-in document surface.
 - Kotlin / Spring Boot 3.5, package `com.example.arena_set_sharer`
 - Postgres via Docker Compose; Liquibase at `src/main/resources/liquibase/changelog.xml`
 - JPA for `users` and `password_resets`; user documents are JSONB when that table exists
-- JWT + BCrypt + HMAC email; SES for reset mail
+- JWT + BCrypt + HMAC email; Gmail SMTP for reset mail
 - `bootRun` loads gitignored `.env` (see `.env.example`). Tests use `src/test/resources/application.properties`
 
 ## Where the brain lives
@@ -24,7 +24,7 @@ A formal demo is a signed-in document surface.
 | Concern | Owner |
 |---------|--------|
 | Login / register / JWT | `AuthenticationRestController`, `UserService`, `JwtUtil` |
-| Password reset | `PasswordResetService`, `AwsSesMailService` |
+| Password reset | `PasswordResetService`, `SmtpMailService` |
 | Authn boundary | `SecurityConfig`, `JwtRequestFilter` |
 | User documents / ingest | `DocumentRestController`, `DocumentService` |
 | Set covers | `CoverRestController`, `CoverService` |

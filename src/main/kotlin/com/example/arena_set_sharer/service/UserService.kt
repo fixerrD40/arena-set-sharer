@@ -14,7 +14,7 @@ class UserService(
     private val dao: UserRepository,
     private val passwordEncoder: PasswordEncoder,
     private val cryptoUtil: CryptoUtil,
-    @Value("\${app.root-email:}") private val rootEmail: String
+    @Value("\${spring.mail.username:}") private val mailUsername: String
 ) {
 
     fun getUser(id: Int): User {
@@ -73,12 +73,12 @@ class UserService(
         return toDomain(dao.save(entity.copy(admin = admin)))
     }
 
-    // root is config (APP_ROOT_EMAIL HMAC), not a grant. admin is a column root can flip.
+    // root is the mail mailbox (spring.mail.username HMAC), not a grant. admin is a column root can flip.
     private fun toDomain(entity: UserEntity): User = entity.toDomain(isRootHash(entity.emailHash))
 
     private fun isRootHash(emailHash: String): Boolean {
-        if (rootEmail.isBlank()) return false
-        return emailHash == cryptoUtil.hmacSha256(rootEmail)
+        if (mailUsername.isBlank()) return false
+        return emailHash == cryptoUtil.hmacSha256(mailUsername)
     }
 
     companion object {

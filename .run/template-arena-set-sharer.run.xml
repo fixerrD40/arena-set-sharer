@@ -2,9 +2,8 @@
   <configuration default="false" name="template-arena-set-sharer" type="JetRunConfigurationType">
     <envs>
       <env name="APP_CRYPTO_SECRET" value="MY_APP_CRYPTO_SECRET" />
-      <env name="APP_SES_EMAIL" value="MY_APP_SES_EMAIL" />
-      <env name="AWS_ACCESS_KEY_ID" value="MY_AWS_ACCESS_KEY_ID" />
-      <env name="AWS_SECRET_ACCESS_KEY" value="MY_AWS_SECRET_ACCESS_KEY" />
+      <env name="APP_MAIL_USERNAME" value="MY_APP_MAIL_USERNAME" />
+      <env name="APP_MAIL_PASSWORD" value="MY_APP_MAIL_PASSWORD" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="com.example.arena_set_sharer.ArenaSetSharerApplicationKt" />
     <module name="arena_set_sharer.main" />
