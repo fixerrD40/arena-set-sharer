@@ -18,6 +18,12 @@
                 <constraints nullable="false"/>
             </column>
             <column name="created_at" type="TIMESTAMP"/>
+            <column name="admin" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email_verified" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
 
@@ -52,7 +58,38 @@
                 onDelete="CASCADE"/>
     </changeSet>
 
-    <changeSet id="user-documents" author="hstafford">
+    <changeSet id="genesis-email-verifications" author="hstafford">
+        <comment>One-time register confirm tokens.</comment>
+        <createTable tableName="email_verifications">
+            <column name="id" type="INT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="app_user" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="token_hash" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expires_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="used" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint
+                baseTableName="email_verifications"
+                baseColumnNames="app_user"
+                referencedTableName="users"
+                referencedColumnNames="id"
+                constraintName="email_verifications_users_fk"
+                onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="genesis-user-documents" author="hstafford">
         <comment>Per-user set and deck documents. No card catalog.</comment>
         <createTable tableName="user_documents">
             <column name="user_id" type="INT">
@@ -82,15 +119,6 @@
                 referencedColumnNames="id"
                 constraintName="user_documents_users_fk"
                 onDelete="CASCADE"/>
-    </changeSet>
-
-    <changeSet id="users-admin" author="hstafford">
-        <comment>Operator flag for cover upload.</comment>
-        <addColumn tableName="users">
-            <column name="admin" type="BOOLEAN" defaultValueBoolean="false">
-                <constraints nullable="false"/>
-            </column>
-        </addColumn>
     </changeSet>
 
 </databaseChangeLog>

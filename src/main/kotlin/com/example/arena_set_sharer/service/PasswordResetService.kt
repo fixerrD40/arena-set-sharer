@@ -23,6 +23,7 @@ class PasswordResetService(
     @Transactional
     fun requestPasswordReset(email: String) {
         val user = users.getUser(email) ?: return
+        if (!user.emailVerified) return
 
         if (canRequestReset(user)) {
             dao.deleteByAppUser(user.id!!)
@@ -40,7 +41,8 @@ class PasswordResetService(
     @Transactional
     fun resetPassword(token: String, newPassword: String) {
         val hash = crypto.hmacSha256(token)
-        val passwordReset = dao.findValidByTokenHash(hash)!!
+        val passwordReset = dao.findValidByTokenHash(hash)
+            ?: throw IllegalStateException("Invalid or expired reset token")
 
         passwordReset.used = true
         dao.save(passwordReset)

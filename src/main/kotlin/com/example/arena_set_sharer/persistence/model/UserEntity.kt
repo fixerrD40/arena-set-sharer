@@ -14,7 +14,9 @@ data class UserEntity(
     val username: String,
     val passwordHash: String,
     val createdAt: Instant,
-    val admin: Boolean = false
+    val admin: Boolean = false,
+    val emailVerified: Boolean = false
 ) {
-    fun toDomain(root: Boolean = false): User = User(id, emailHash, username, passwordHash, admin, root)
+    fun toDomain(root: Boolean = false): User =
+        User(id, emailHash, username, passwordHash, admin, root, emailVerified)
 }

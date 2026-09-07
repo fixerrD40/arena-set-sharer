@@ -10,7 +10,8 @@ class User(
     private val username: String = "",
     private val password: String = "",
     val admin: Boolean = false,
-    val root: Boolean = false
+    val root: Boolean = false,
+    val emailVerified: Boolean = false
 ) : UserDetails {
     override fun getAuthorities(): Set<GrantedAuthority> = buildSet {
         if (root) add(SimpleGrantedAuthority("ROLE_ROOT"))

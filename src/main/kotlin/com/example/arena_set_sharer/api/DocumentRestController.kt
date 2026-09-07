@@ -32,8 +32,11 @@ class DocumentRestController(
         consumes = [MediaType.APPLICATION_NDJSON_VALUE, "application/x-ndjson"]
     )
     fun bulkSync(request: HttpServletRequest): ResponseEntity<Void> {
-        val userId = JwtRequestFilter.authenticatedUser().id
-            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        val user = JwtRequestFilter.authenticatedUser()
+        val userId = user.id ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        if (!user.emailVerified) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
 
         val rows = try {
             request.inputStream.bufferedReader().use { reader ->
@@ -63,8 +66,11 @@ class DocumentRestController(
     ): ResponseEntity<List<JsonNode>> {
         val type = DocumentService.typeForSegment(segment)
             ?: return ResponseEntity.notFound().build()
-        val userId = JwtRequestFilter.authenticatedUser().id
-            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        val user = JwtRequestFilter.authenticatedUser()
+        val userId = user.id ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        if (!user.emailVerified) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
 
         return ResponseEntity.ok(documents.snapshot(userId, type, contextId))
     }

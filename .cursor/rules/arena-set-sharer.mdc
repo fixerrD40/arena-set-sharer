@@ -25,6 +25,7 @@ A formal demo is a signed-in document surface.
 |---------|--------|
 | Login / register / JWT | `AuthenticationRestController`, `UserService`, `JwtUtil` |
 | Password reset | `PasswordResetService`, `SmtpMailService` |
+| Email verification | `EmailVerificationService`, `AuthenticationRestController` |
 | Authn boundary | `SecurityConfig`, `JwtRequestFilter` |
 | User documents / ingest | `DocumentRestController`, `DocumentService` |
 | Set covers | `CoverRestController`, `CoverService` |

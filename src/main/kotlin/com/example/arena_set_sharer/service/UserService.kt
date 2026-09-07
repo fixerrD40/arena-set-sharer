@@ -50,10 +50,17 @@ class UserService(
             username = username,
             passwordHash = encodedPassword,
             createdAt = Instant.now(),
-            admin = false
+            admin = false,
+            emailVerified = false
         )
 
         return toDomain(dao.save(newUser))
+    }
+
+    fun markEmailVerified(userId: Int): User? {
+        val entity = dao.findById(userId).orElse(null) ?: return null
+        if (entity.emailVerified) return toDomain(entity)
+        return toDomain(dao.save(entity.copy(emailVerified = true)))
     }
 
     fun resetUserPassword(userId: Int, newPassword: String): User? {
