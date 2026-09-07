@@ -1,0 +1,10 @@
+.git
+.gradle
+build
+.cursor
+.env
+.env.example
+covers
+scripts
+*.md
+.idea
