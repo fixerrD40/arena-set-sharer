@@ -20,6 +20,8 @@ bin/
 .env
 .cursor/FOLLOWUPS.md
 covers/
+set-covers/*
+!set-covers/README.md
 scripts/grant-admin.sh
 
 ### IntelliJ IDEA ###
