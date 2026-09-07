@@ -20,6 +20,7 @@ bin/
 .env
 .cursor/FOLLOWUPS.md
 covers/
+scripts/grant-admin.sh
 
 ### IntelliJ IDEA ###
 .idea

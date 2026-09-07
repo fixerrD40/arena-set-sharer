@@ -48,7 +48,8 @@ class SecurityConfig {
                     // GET covers: Electron / Capacitor / <img> fetch the jpg without a Bearer.
                     .requestMatchers(HttpMethod.GET, "/api/assets/covers/**").permitAll()
                     .requestMatchers(HttpMethod.PUT, "/api/assets/covers/**").hasRole("ADMIN")
-                    .requestMatchers("/api/admins/**").hasRole("ROOT")
+                    // Handshake: APP_MAIL_PASSWORD on the body; ROLE_ADMIN is the Spring role.
+                    .requestMatchers("/api/admins/**").permitAll()
                     .requestMatchers("/api/**").authenticated()
             }
             .sessionManagement {

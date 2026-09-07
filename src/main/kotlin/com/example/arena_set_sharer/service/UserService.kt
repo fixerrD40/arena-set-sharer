@@ -7,6 +7,7 @@ import com.example.arena_set_sharer.security.CryptoUtil
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
+import java.security.MessageDigest
 import java.time.Instant
 
 @Component
@@ -14,20 +15,21 @@ class UserService(
     private val dao: UserRepository,
     private val passwordEncoder: PasswordEncoder,
     private val cryptoUtil: CryptoUtil,
-    @Value("\${spring.mail.username:}") private val mailUsername: String
+    @Value("\${spring.mail.username:}") private val mailUsername: String,
+    @Value("\${spring.mail.password:}") private val mailPassword: String
 ) {
 
     fun getUser(id: Int): User {
-        return toDomain(dao.findById(id).get())
+        return dao.findById(id).get().toDomain()
     }
 
     fun getUser(email: String): User? {
         val encodedEmail = cryptoUtil.hmacSha256(email)
-        return dao.findByEmailHash(encodedEmail)?.let { toDomain(it) }
+        return dao.findByEmailHash(encodedEmail)?.toDomain()
     }
 
     fun getUserByUsername(username: String): User? {
-        return dao.findByUsername(username)?.let { toDomain(it) }
+        return dao.findByUsername(username)?.toDomain()
     }
 
     fun authenticate(email: String, password: String): User? {
@@ -39,6 +41,7 @@ class UserService(
     fun registerUser(credentials: User): User {
         require(credentials.email != null)
         require(EMAIL_REGEX.matches(credentials.email)) { "Invalid email format." }
+        require(!isMailUsername(credentials.email)) { "That email is reserved." }
         val encodedEmail = cryptoUtil.hmacSha256(credentials.email)
         val encodedPassword = passwordEncoder.encode(credentials.password)
         val username = credentials.username.takeIf { it.isNotBlank() }
@@ -54,13 +57,13 @@ class UserService(
             emailVerified = false
         )
 
-        return toDomain(dao.save(newUser))
+        return dao.save(newUser).toDomain()
     }
 
     fun markEmailVerified(userId: Int): User? {
         val entity = dao.findById(userId).orElse(null) ?: return null
-        if (entity.emailVerified) return toDomain(entity)
-        return toDomain(dao.save(entity.copy(emailVerified = true)))
+        if (entity.emailVerified) return entity.toDomain()
+        return dao.save(entity.copy(emailVerified = true)).toDomain()
     }
 
     fun resetUserPassword(userId: Int, newPassword: String): User? {
@@ -71,21 +74,30 @@ class UserService(
         val encodedPassword = passwordEncoder.encode(newPassword)
 
         val updatedUser = userEntity.copy(passwordHash = encodedPassword)
-        return toDomain(dao.save(updatedUser))
+        return dao.save(updatedUser).toDomain()
     }
 
     fun setAdmin(email: String, admin: Boolean): User? {
         require(EMAIL_REGEX.matches(email)) { "Invalid email format." }
+        require(!isMailUsername(email)) { "Cannot change admin on the mail mailbox identity." }
         val entity = dao.findByEmailHash(cryptoUtil.hmacSha256(email)) ?: return null
-        return toDomain(dao.save(entity.copy(admin = admin)))
+        return dao.save(entity.copy(admin = admin)).toDomain()
     }
 
-    // root is the mail mailbox (spring.mail.username HMAC), not a grant. admin is a column root can flip.
-    private fun toDomain(entity: UserEntity): User = entity.toDomain(isRootHash(entity.emailHash))
+    /**
+     * Ops handshake for PUT /api/admins: assert APP_MAIL_PASSWORD only.
+     * Not a Spring role and not a session.
+     */
+    fun matchesMailRootPassword(password: String): Boolean {
+        if (mailPassword.isBlank()) return false
+        val expected = mailPassword.toByteArray(Charsets.UTF_8)
+        val given = password.toByteArray(Charsets.UTF_8)
+        return MessageDigest.isEqual(expected, given)
+    }
 
-    private fun isRootHash(emailHash: String): Boolean {
+    private fun isMailUsername(email: String): Boolean {
         if (mailUsername.isBlank()) return false
-        return emailHash == cryptoUtil.hmacSha256(mailUsername)
+        return email.trim().equals(mailUsername.trim(), ignoreCase = true)
     }
 
     companion object {

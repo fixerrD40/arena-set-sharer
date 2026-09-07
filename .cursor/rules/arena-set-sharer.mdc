@@ -17,6 +17,8 @@ A formal demo is a signed-in document surface.
 - Postgres via Docker Compose; Liquibase at `src/main/resources/liquibase/changelog.xml`
 - JPA for `users` and `password_resets`; user documents are JSONB when that table exists
 - JWT + BCrypt + HMAC email; Gmail SMTP for reset mail
+- `APP_MAIL_USERNAME` / `APP_MAIL_PASSWORD`: SMTP From; password also unlocks `PUT /api/admins` handshake (not a Spring role)
+- `ROLE_ADMIN` is a normal JWT authority from `users.admin`
 - `bootRun` loads gitignored `.env` (see `.env.example`). Tests use `src/test/resources/application.properties`
 
 ## Where the brain lives
@@ -29,7 +31,7 @@ A formal demo is a signed-in document surface.
 | Authn boundary | `SecurityConfig`, `JwtRequestFilter` |
 | User documents / ingest | `DocumentRestController`, `DocumentService` |
 | Set covers | `CoverRestController`, `CoverService` |
-| Root / admin grant | `AdminRestController`, `UserService` |
+| Admin grant (mail-password handshake) | `AdminRestController`, `UserService` |
 | Schema | `liquibase/changelog.xml` |
 
 ## Commits
