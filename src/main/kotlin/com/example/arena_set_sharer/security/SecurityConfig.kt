@@ -55,6 +55,13 @@ class SecurityConfig {
             .sessionManagement {
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
+            .exceptionHandling {
+                // Anonymous / bad JWT on /api/** → 401 so clients can clear a stale session.
+                // Authenticated-but-forbidden (e.g. non-admin cover PUT) stays 403.
+                it.authenticationEntryPoint { _, response, _ ->
+                    response.sendError(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED)
+                }
+            }
             .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()
