@@ -60,6 +60,14 @@ for cover_path in "${files[@]}"; do
 
   url="$BASE_URL/api/assets/covers/${set_code}.jpg"
 
+  # Sharer requires JPEG magic (FF D8 FF); mislabeled webp/png/avif become HTTP 400.
+  magic=$(od -An -tx1 -N3 "$cover_path" | tr -d ' \n')
+  if [[ "$magic" != "ffd8ff" ]]; then
+    echo "failed $set_code (not a JPEG; got magic $magic — convert before upload)" >&2
+    failed=$((failed + 1))
+    continue
+  fi
+
   if [[ "${PUT_COVER_FORCE:-}" != "1" ]]; then
     existing=$(curl -sS -o /dev/null -w '%{http_code}' "$url" || true)
     if [[ "$existing" == "200" ]]; then
