@@ -22,13 +22,16 @@ class DocumentService(
 
     fun snapshot(userId: Int, type: String, contextId: String?): List<JsonNode> {
         val live = documents.findByUserIdAndTypeAndDeletedFalse(userId, type)
-        if (contextId.isNullOrBlank() || contextId == ALL_CONTEXT) {
-            return live.map { it.body }
+        val scoped = if (contextId.isNullOrBlank() || contextId == ALL_CONTEXT) {
+            live
+        } else {
+            when (type) {
+                TYPE_DECK -> live.filter { it.body.path("setId").asText() == contextId }
+                else -> live.filter { it.id == contextId }
+            }
         }
-        return when (type) {
-            TYPE_DECK -> live.filter { it.body.path("setId").asText() == contextId }.map { it.body }
-            else -> live.filter { it.id == contextId }.map { it.body }
-        }
+        // Body as stored; missing payload.updatedAt loses hydrate LWW on the client.
+        return scoped.map { it.body }
     }
 
     private fun apply(userId: Int, row: OutboxRow) {
@@ -50,6 +53,8 @@ class DocumentService(
 
         val incomingAt = incomingTimestamp(row)
         val existing = documents.findByUserIdAndTypeAndId(userId, type, documentId)
+        // Missing payload.updatedAt → EPOCH → loses to any stamped cloud row.
+        // Equal stamps: accept incoming (same as prior !isAfter overwrite).
         if (existing != null && existing.updatedAt.isAfter(incomingAt)) {
             return
         }
@@ -84,10 +89,10 @@ class DocumentService(
         )
     }
 
+    /** Only payload.updatedAt counts; blank/missing is EPOCH (loses). */
     private fun incomingTimestamp(row: OutboxRow): Instant {
         val raw = row.payload?.get("updatedAt")?.asText()?.takeIf { it.isNotBlank() }
-            ?: row.createdAt?.takeIf { it.isNotBlank() }
-        return raw?.let { runCatching { Instant.parse(it) }.getOrNull() } ?: Instant.now()
+        return raw?.let { runCatching { Instant.parse(it) }.getOrNull() } ?: Instant.EPOCH
     }
 
     companion object {
