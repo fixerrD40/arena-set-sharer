@@ -12,7 +12,8 @@ import java.time.Instant
 @Component
 class DocumentService(
     private val documents: UserDocumentRepository,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val community: SetCommunityService
 ) {
 
     @Transactional
@@ -71,6 +72,7 @@ class DocumentService(
                     body = body
                 )
             )
+            markCommunityDirty(type, documentId, row.payload, existing)
             return
         }
 
@@ -87,6 +89,22 @@ class DocumentService(
                 body = payload
             )
         )
+        markCommunityDirty(type, documentId, payload, existing)
+    }
+
+    private fun markCommunityDirty(
+        type: String,
+        documentId: String,
+        payload: JsonNode?,
+        existing: UserDocumentEntity?
+    ) {
+        val setId = when (type) {
+            TYPE_SET -> documentId
+            TYPE_DECK -> payload?.path("setId")?.asText()?.ifBlank { null }
+                ?: existing?.body?.path("setId")?.asText()
+            else -> null
+        }
+        community.markDirty(setId)
     }
 
     /** Only payload.updatedAt counts; blank/missing is EPOCH (loses). */

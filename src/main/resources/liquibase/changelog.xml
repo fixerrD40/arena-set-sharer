@@ -117,8 +117,23 @@
                 baseColumnNames="user_id"
                 referencedTableName="users"
                 referencedColumnNames="id"
-                constraintName="user_documents_users_fk"
-                onDelete="CASCADE"/>
+            constraintName="user_documents_users_fk"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="set-community" author="hstafford">
+        <comment>Per-set pairing and copy histogram from final decks.</comment>
+        <createTable tableName="set_community">
+            <column name="set_id" type="VARCHAR(64)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="generated_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="body" type="JSONB">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
     </changeSet>
 
 </databaseChangeLog>

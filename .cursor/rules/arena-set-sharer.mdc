@@ -30,6 +30,7 @@ A formal demo is a signed-in document surface.
 | Email verification | `EmailVerificationService`, `AuthenticationRestController` |
 | Authn boundary | `SecurityConfig`, `JwtRequestFilter` |
 | User documents / ingest | `DocumentRestController`, `DocumentService` |
+| Per-set community rollup | `CommunityRestController`, `SetCommunityService` |
 | Set covers | `CoverRestController`, `CoverService` |
 | Admin grant (mail-password handshake) | `AdminRestController`, `UserService` |
 | Schema | `liquibase/changelog.xml` |

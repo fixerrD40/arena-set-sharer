@@ -8,4 +8,6 @@ interface UserDocumentRepository : JpaRepository<UserDocumentEntity, UserDocumen
     fun findByUserIdAndTypeAndDeletedFalse(userId: Int, type: String): List<UserDocumentEntity>
 
     fun findByUserIdAndTypeAndId(userId: Int, type: String, id: String): UserDocumentEntity?
+
+    fun findByTypeAndDeletedFalse(type: String): List<UserDocumentEntity>
 }
